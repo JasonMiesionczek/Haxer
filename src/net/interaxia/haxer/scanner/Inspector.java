@@ -20,7 +20,11 @@ public class Inspector {
 
     public Inspector(File f) {
         inputFile = f;
-        outputFile = new HaxeFile();
+        outputFile = new HaxeFile(f);
+    }
+
+    public File getInputFile() {
+        return inputFile;
     }
 
     public void inspect() {

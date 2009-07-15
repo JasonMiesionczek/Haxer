@@ -54,8 +54,10 @@ public class Translator {
             line = detectAndConvertTypes(line);
 
             newLines.add(line);
-            System.out.println(line);
+            //System.out.println(line);
         }
+
+        file.setLines(newLines);
     }
 
     private boolean isStartOfComment(String input) {
