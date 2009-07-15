@@ -1,10 +1,10 @@
 package net.interaxia.haxer;
 
-import net.interaxia.haxer.api.ObjectType;
 import net.interaxia.haxer.api.AllTypes;
+import net.interaxia.haxer.api.ObjectType;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.

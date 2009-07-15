@@ -1,15 +1,15 @@
 package net.interaxia.haxer.api;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Node;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -35,7 +35,7 @@ public class AllTypes {
 
     public List<String> getAllShortNames() {
         List<String> temp = new ArrayList<String>();
-        for (ObjectType o: allTypes) {
+        for (ObjectType o : allTypes) {
             temp.add(o.getTypeName());
 
         }
@@ -44,7 +44,7 @@ public class AllTypes {
     }
 
     public ObjectType getTypeByShortName(String shortName) {
-        for (ObjectType t: allTypes) {
+        for (ObjectType t : allTypes) {
             if (t.getTypeName().equals(shortName))
                 return t;
         }
@@ -55,11 +55,24 @@ public class AllTypes {
     private AllTypes() {
         allTypes = new ArrayList<ObjectType>();
         readFlashAPI();
+        addBasicType("void", "Void");
+        addBasicType("int", "Int");
+        addBasicType("Number", "Float");
+        addBasicType("Boolean", "Bool");
+        addBasicType("Array", "Array<Dynamic>");
 
+    }
+
+    private void addBasicType(String asName, String haxeName) {
+        ObjectType otype = new ObjectType("", asName);
+        otype.setBasicType(true);
+        otype.setNormalizedTypeName(haxeName);
+        allTypes.add(otype);
     }
 
     public void addType(String pkgName, String typeName) {
         ObjectType otype = new ObjectType(pkgName, typeName);
+        otype.setBasicType(false);
         allTypes.add(otype);
     }
 
@@ -71,19 +84,19 @@ public class AllTypes {
             Document doc = db.parse(file);
             doc.getDocumentElement().normalize();
             NodeList nodes = doc.getElementsByTagName("package");
-            for (int i = 0; i < nodes.getLength(); i++ ) {
+            for (int i = 0; i < nodes.getLength(); i++) {
                 Node n = nodes.item(i);
                 if (n.getNodeType() != Node.ELEMENT_NODE) continue;
-                Element e = (Element)n;
+                Element e = (Element) n;
                 String pkgName = e.getAttribute("name");
                 NodeList types = e.getElementsByTagName("type");
                 for (int j = 0; j < types.getLength(); j++) {
-                    Element t = (Element)types.item(j);
-                    String typeName = ((Node)(t.getChildNodes().item(0))).getNodeValue();
+                    Element t = (Element) types.item(j);
+                    String typeName = ((Node) (t.getChildNodes().item(0))).getNodeValue();
                     addType(pkgName, typeName);
 
                 }
-                
+
             }
         }
         catch (Exception e) {

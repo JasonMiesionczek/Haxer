@@ -4,8 +4,8 @@ import net.interaxia.haxer.HaxeFile;
 import net.interaxia.haxer.api.AllTypes;
 
 import java.io.*;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by IntelliJ IDEA.
@@ -41,12 +41,22 @@ public class Inspector {
 
         detectPackage();
         detectClasses();
+        detectInterfaces();
 
     }
 
     private void detectClasses() {
         Pattern p = Pattern.compile("public\\s+class\\s+(\\S+)");
-        for (String line: outputFile.getLines()) {
+        for (String line : outputFile.getLines()) {
+            Matcher matcher = p.matcher(line);
+            if (!matcher.find()) continue;
+            AllTypes.getInstance().addType(outputFile.getPkg(), matcher.group(1));
+        }
+    }
+
+    private void detectInterfaces() {
+        Pattern p = Pattern.compile("public\\s+interface\\s+(\\S+)");
+        for (String line : outputFile.getLines()) {
             Matcher matcher = p.matcher(line);
             if (!matcher.find()) continue;
             AllTypes.getInstance().addType(outputFile.getPkg(), matcher.group(1));
@@ -55,7 +65,7 @@ public class Inspector {
 
     private void detectPackage() {
         Pattern p = Pattern.compile("^[^a-z]*package\\s+(\\S+)\\s*[{]*");
-        for (String line: outputFile.getLines()) {
+        for (String line : outputFile.getLines()) {
             Matcher matcher = p.matcher(line);
             if (!matcher.find()) continue;
             outputFile.setPkg(matcher.group(1));
