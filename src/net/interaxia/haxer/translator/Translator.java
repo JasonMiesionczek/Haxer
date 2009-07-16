@@ -25,6 +25,7 @@ public class Translator {
 
     public void translate() {
         boolean withinComment = false;
+        int packagePos = -1;
         List<String> newLines = new ArrayList<String>();
         for (int i = 0; i < file.getLines().size(); i++) {
             String line = file.getLines().get(i);
@@ -51,10 +52,25 @@ public class Translator {
                 continue;
             }
 
+            if (isImport(line))
+                continue;
+
+            String line2 = locateAndConvertPackage(line);
+            if (line2 != line) {
+                packagePos = i;
+            }
+            line = line2;
+
             line = detectAndConvertTypes(line);
 
             newLines.add(line);
             //System.out.println(line);
+        }
+
+        if (packagePos >= 0) {
+            for (String imp : file.getImports()) {
+                newLines.add(packagePos + 1, "\timport " + imp + ";");
+            }
         }
 
         file.setLines(newLines);
@@ -90,6 +106,31 @@ public class Translator {
 
         return line;
 
+    }
+
+    private String locateAndConvertPackage(String line) {
+        String orig = getLineWithoutComments(line);
+        String temp = orig;
+
+        if (temp.contains("package " + file.getPkg())) {
+            if (temp.trim().endsWith("{")) {
+                temp = temp.replace("{", "").trim().concat(";");
+                return line.replace(orig, temp);
+            }
+        }
+
+        return line;
+    }
+
+    private boolean isImport(String line) {
+        String orig = getLineWithoutComments(line);
+        String temp = orig;
+
+        if (temp.trim().startsWith("import ")) {
+            return true;
+        }
+
+        return false;
     }
 
     private String detectAndConvertTypes(String line) {
