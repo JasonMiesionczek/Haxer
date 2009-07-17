@@ -30,7 +30,7 @@ public class Haxer {
 
         System.out.println(inputPath);
         System.out.println(outputPath);
-
+        long processStart = System.currentTimeMillis();
         Scanner scanner = new Scanner();
         scanner.scan(new File(inputPath));
         List<File> files = scanner.getFilesToConvert();
@@ -47,6 +47,9 @@ public class Haxer {
             t.translate();
             saveOutputFile(outputPath, hf);
         }
+        long processEnd = System.currentTimeMillis();
+        long totalTime = processEnd - processStart;
+        System.out.println(haxeFiles.size() + " files translated in " + totalTime + "ms (" + totalTime / 1000 + "s)");
     }
 
     private static void saveOutputFile(String rootFolder, HaxeFile file) {
@@ -71,6 +74,8 @@ public class Haxer {
             for (String line : file.getLines()) {
                 writer.write(line + "\n");
             }
+            writer.flush();
+            writer.close();
         } catch (IOException ioe) {
             System.out.println(ioe.getMessage());
         }
