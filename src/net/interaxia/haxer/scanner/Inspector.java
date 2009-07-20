@@ -7,13 +7,6 @@ import java.io.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Atmospherian
- * Date: Jul 14, 2009
- * Time: 10:29:55 AM
- * To change this template use File | Settings | File Templates.
- */
 public class Inspector {
     private File inputFile;
     private HaxeFile outputFile;
@@ -31,7 +24,7 @@ public class Inspector {
         try {
             FileReader reader = new FileReader(inputFile);
             BufferedReader breader = new BufferedReader(reader);
-            String line = "";
+            String line;
             while ((line = breader.readLine()) != null) {
                 outputFile.getLines().add(line);
             }
@@ -68,7 +61,7 @@ public class Inspector {
     }
 
     private void detectPackage() {
-        Pattern p = Pattern.compile("^[^a-z]*package\\s+(\\S+)\\s*[{]*");
+        Pattern p = Pattern.compile("^[^a-z]*package\\s+(\\S+)\\b\\s*[{]*");
         for (String line : outputFile.getLines()) {
             Matcher matcher = p.matcher(line);
             if (!matcher.find()) continue;

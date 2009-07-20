@@ -1,34 +1,21 @@
 package net.interaxia.haxer.translator;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Atmospherian
- * Date: Jul 16, 2009
- * Time: 8:19:04 AM
- * To change this template use File | Settings | File Templates.
- */
 public class BaseTranslator {
 
     protected boolean isStartOfComment(String input) {
-        if (input.trim().startsWith("/*"))
-            return true;
+        return input.trim().startsWith("/*");
 
-        return false;
     }
 
     protected boolean isEndOfComment(String input) {
-        if (input.trim().endsWith("*/"))
-            return true;
+        return input.trim().endsWith("*/");
 
-        return false;
     }
 
     protected boolean isSingleLineComment(String input) {
         String temp = input.trim();
-        if (temp.startsWith("//") || (temp.startsWith("/*") && temp.endsWith("*/")))
-            return true;
+        return temp.startsWith("//") || (temp.startsWith("/*") && temp.endsWith("*/"));
 
-        return false;
     }
 
     protected String getLineWithoutComments(String line) {

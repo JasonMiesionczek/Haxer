@@ -1,16 +1,9 @@
 package net.interaxia.haxer.scanner;
 
-import java.util.List;
-import java.util.ArrayList;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Atmospherian
- * Date: Jul 14, 2009
- * Time: 8:17:53 AM
- * To change this template use File | Settings | File Templates.
- */
 public class Scanner {
     private List<File> filesToConvert;
 

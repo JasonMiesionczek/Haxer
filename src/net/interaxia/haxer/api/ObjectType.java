@@ -1,12 +1,5 @@
 package net.interaxia.haxer.api;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Atmospherian
- * Date: Jul 14, 2009
- * Time: 9:58:32 AM
- * To change this template use File | Settings | File Templates.
- */
 public class ObjectType {
     private String typePackage;
     private String typeName;

@@ -3,25 +3,23 @@ package net.interaxia.haxer.translator;
 import net.interaxia.haxer.HaxeFile;
 import net.interaxia.haxer.api.AllTypes;
 import net.interaxia.haxer.api.ObjectType;
+import net.interaxia.haxer.api.Property;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Atmospherian
- * Date: Jul 14, 2009
- * Time: 4:59:41 PM
- * To change this template use File | Settings | File Templates.
- */
 public class Translator extends BaseTranslator {
     private HaxeFile file;
     private List<Pattern> forPatterns;
+    private HashMap<String, Property> propertyMap;
+    private int classPos = -1;
 
     public Translator(HaxeFile file) {
         this.file = file;
+        propertyMap = new HashMap<String, Property>();
     }
 
     /**
@@ -34,6 +32,7 @@ public class Translator extends BaseTranslator {
         boolean withinComment = false;
         int packagePos = -1;
         List<String> newLines = new ArrayList<String>();
+
         for (int i = 0; i < file.getLines().size(); i++) {
             String line = file.getLines().get(i);
             String nextLine = null;
@@ -69,7 +68,7 @@ public class Translator extends BaseTranslator {
                 continue;
 
             String line2 = locateAndConvertPackage(line);
-            if (line2 != line) {
+            if (!line2.equals(line)) {
                 packagePos = i;
                 if (nextLine.trim().startsWith("{")) {
                     i++;
@@ -80,11 +79,25 @@ public class Translator extends BaseTranslator {
             line = line2;
 
             line = detectAndConvertTypes(line);
-            line = detectAndConvertClass(line);
+            String line3 = detectAndConvertClass(line);
+            if (!line3.equals(line)) {
+                classPos = newLines.size() + 1;
+            }
+            line = line3;
+
             line = detectAndConvertConstructor(line);
             line = detectAndConvertForLoop(line);
             line = addSemiColon(line, nextLine);
+            line = detectPropertySetter(line);
+            line = detectPropertyGetter(line);
             newLines.add(line);
+
+        }
+
+        if (classPos >= 0) {
+            for (String key : propertyMap.keySet()) {
+                newLines.add(classPos + 1, "\t\t" + propertyMap.get(key).toString());
+            }
         }
 
         if (packagePos >= 0) {
@@ -96,11 +109,57 @@ public class Translator extends BaseTranslator {
         file.setLines(removeLastCurlyBrace(newLines));
     }
 
+    private String detectPropertySetter(String line) {
+        String orig = getLineWithoutComments(line);
+        String temp = orig;
+
+        Pattern p = Pattern.compile("function\\s+set\\s+(\\w+)\\((\\S*)\\)");
+        Matcher m = p.matcher(temp);
+        if (m.find()) {
+            String propName = m.group(1);
+            String objType = m.group(2).split(":")[1];
+            Property prop = new Property(propName);
+            prop.setObjectType(objType);
+            String newFunctionName = propName + "Setter";
+            temp = temp.replace("function set " + propName, "function " + newFunctionName);
+            prop.setSetterFunction(newFunctionName);
+            propertyMap.put(propName, prop);
+        }
+
+        return line.replace(orig, temp);
+    }
+
+    private String detectPropertyGetter(String line) {
+        String orig = getLineWithoutComments(line);
+        String temp = orig;
+
+        Pattern p = Pattern.compile("function\\s+get\\s+(\\w+)\\(\\S*\\)\\s*:\\s*(\\S+)");
+        Matcher m = p.matcher(temp);
+
+        if (m.find()) {
+            String propName = m.group(1);
+            String objType = m.group(2);
+            String newFunctionName = propName + "Getter";
+            temp = temp.replace("function get " + propName, "function " + newFunctionName);
+            if (propertyMap.containsKey(propName)) {
+                Property prop = propertyMap.get(propName);
+                prop.setGetterFunction(newFunctionName);
+                propertyMap.put(propName, prop);
+            } else {
+                Property prop = new Property(propName);
+                prop.setGetterFunction(newFunctionName);
+                prop.setObjectType(objType);
+                propertyMap.put(propName, prop);
+            }
+        }
+
+        return line.replace(orig, temp);
+    }
+
     private List<String> removeLastCurlyBrace(List<String> input) {
-        List<String> temp = input;
         int lastBrace = 0;
-        for (int i = temp.size() - 1; i > 0; i--) {
-            String line = temp.get(i);
+        for (int i = input.size() - 1; i > 0; i--) {
+            String line = input.get(i);
             if (line.trim().endsWith("}")) {
                 lastBrace = i;
                 break;
@@ -108,10 +167,10 @@ public class Translator extends BaseTranslator {
         }
 
         if (lastBrace > 0) {
-            temp.remove(lastBrace);
+            input.remove(lastBrace);
         }
 
-        return temp;
+        return input;
     }
 
 
@@ -137,6 +196,12 @@ public class Translator extends BaseTranslator {
         return line.replace(orig, temp);
     }
 
+    /**
+     * Converts the format of the for loop into the ... syntax
+     *
+     * @param line the current line being processed
+     * @return the modified line
+     */
     private String detectAndConvertForLoop(String line) {
         String orig = getLineWithoutComments(line);
         String temp = orig;
@@ -178,8 +243,8 @@ public class Translator extends BaseTranslator {
     /**
      * Detects the constructor for the current class and converts its name to 'new'
      *
-     * @param line
-     * @return
+     * @param line the current line being processed
+     * @return the modified line
      */
     private String detectAndConvertConstructor(String line) {
         String orig = getLineWithoutComments(line);
@@ -200,8 +265,8 @@ public class Translator extends BaseTranslator {
     /**
      * Finds the package definition and converts it from the beginning of a block to a single statement.
      *
-     * @param line
-     * @return
+     * @param line the current line being processed
+     * @return the modified line
      */
     private String locateAndConvertPackage(String line) {
         String orig = getLineWithoutComments(line);
@@ -223,18 +288,14 @@ public class Translator extends BaseTranslator {
     /**
      * Detects if the current line is an import statement so that the translator can skip adding it to the newLines list
      *
-     * @param line
-     * @return
+     * @param line the current line being processed
+     * @return the modified line
      */
     private boolean isImport(String line) {
         String orig = getLineWithoutComments(line);
-        String temp = orig;
 
-        if (temp.trim().startsWith("import ")) {
-            return true;
-        }
+        return orig.trim().startsWith("import ");
 
-        return false;
     }
 
     /**
@@ -242,8 +303,8 @@ public class Translator extends BaseTranslator {
      * If a match is found, and the type is not a basic type, it is added to the import list. The type is then converted
      * to its normalized format (uppercase first letter).
      *
-     * @param line
-     * @return
+     * @param line the current line being processed
+     * @return the modified line
      */
     private String detectAndConvertTypes(String line) {
         // remove comments from end of line, store original version so that we can use it replace

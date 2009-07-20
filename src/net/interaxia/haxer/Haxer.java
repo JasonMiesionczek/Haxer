@@ -12,13 +12,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Atmospherian
- * Date: Jul 14, 2009
- * Time: 8:15:37 AM
- * To change this template use File | Settings | File Templates.
- */
 public class Haxer {
     public static void main(String[] args) {
         String inputPath = null;

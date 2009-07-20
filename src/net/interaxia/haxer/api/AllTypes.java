@@ -11,13 +11,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Atmospherian
- * Date: Jul 14, 2009
- * Time: 10:06:09 AM
- * To change this template use File | Settings | File Templates.
- */
+
 public class AllTypes {
     private static AllTypes _instance;
     private List<ObjectType> allTypes;
@@ -92,7 +86,7 @@ public class AllTypes {
                 NodeList types = e.getElementsByTagName("type");
                 for (int j = 0; j < types.getLength(); j++) {
                     Element t = (Element) types.item(j);
-                    String typeName = ((Node) (t.getChildNodes().item(0))).getNodeValue();
+                    String typeName = t.getChildNodes().item(0).getNodeValue();
                     addType(pkgName, typeName);
 
                 }
